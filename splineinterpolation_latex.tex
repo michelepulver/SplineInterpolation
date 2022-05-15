@@ -1,0 +1,299 @@
+\documentclass[12pt,titlepage]{article}
+
+\usepackage[ngerman]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage{color}
+\usepackage[a4paper,lmargin={2cm},rmargin={2cm},tmargin={2.5cm},bmargin ={2.5cm}]{geometry}
+\usepackage{amssymb}
+\usepackage{amsmath}
+\usepackage{amsthm}
+\usepackage{graphicx}
+\usepackage[straightvoltages]{circuitikz}
+\usepackage[locale=DE]{siunitx}
+\usepackage[T1]{fontenc}
+\usepackage{mathtools}
+
+\def\theequation{\thesection.\arabic{equation}}
+\def\thefigure{\thesection.\arabic{figure}}
+\def\thetable{\thesection.\arabic{table}}
+
+\setlength\parindent{0pt}
+
+\begin{document}
+
+\section{Spline Interpolation}
+
+Bei der nachfolgenden Spline Interpolation wird das prinzip der Kubischen $C^2$-Spline Interpolation mit natürlichen Randbedingungen angewandt. Zur Lösung der Gleichung wird der Thomas Algorithmus verwendet. Ausserdem werden Werte ausserhalb der Stützpunkte durch lineare Extrapolation mit der Steigung am Anfangs- bzw. Endpunkt approximiert.
+\newline
+
+\begin{table}[h]
+    \centering
+    \begin{tabular}{c|c}
+        $x[n]$ & Vektor Stützpunkte x-Wert\\
+        $y[n]$ & Vektor Stützpunkte y-Wert\\
+        $n$ & Anzahl Stützpunkte\\
+    \end{tabular}
+    \caption{Eingabewerte}
+\end{table}
+
+\begin{table}[h]
+    \centering
+    \begin{tabular}{c|c}
+        $a[n-1]$ & Kubischer Spline Koeffizient\\
+        $b[n-1]$ & Quadratischer Spline Koeffizient\\
+        $c[n-1]$ & Linearer Spline Koeffizient
+    \end{tabular}
+    \caption{Ausgabewerte}
+\end{table}
+
+Die Schrittweite zwischen den einzelnen Stützpunkten wird wie folgt berechnet
+\newline
+
+\begin{equation}
+    h_i = x_{i+1}-x_i \hspace{1cm} ;i\in [1,n-1]
+\end{equation}
+\newline
+
+Bei der Kubischen  $C^2$-Spline Interpolation wird die diskrete Funktion $y[n](x[n])$ im Intervall $[x_1,x_n]$ durch eine kontinuierliche funktion $s(x)$ approximiert. $s(x)$ hat die Form.
+\newline
+
+
+\begin{equation*}
+    s(x) = s_i(x) \hspace{1cm} ;x\in [x_1,x_n]
+\end{equation*}
+\newline
+\begin{equation}
+    s_i(x) = y_i+a_i\cdot (x-x_i)^3+b_i\cdot  (x-x_i)^2+c_i\cdot  (x-x_i) \hspace{1cm} ;x\in [x_i,x_{i+1}]
+\end{equation}
+\newline
+
+Die erste und zweite Ableitung sind gegeben durch
+\newline
+
+\begin{equation}
+    s_i'(x) = 3\cdot a_i\cdot (x-x_i)^2+2\cdot b_i\cdot  (x-x_i)+c_i \hspace{1cm} ;x\in [x_i,x_{i+1}]
+\end{equation}
+\newline
+\begin{equation}
+    s_i''(x) = 6\cdot a_i\cdot (x-x_i)+2\cdot b_i \hspace{1cm} ;x\in [x_i,x_{i+1}]
+\end{equation}
+\newline
+
+Es gelten die Bedingungen
+\newline
+
+\begin{equation}
+    s_i(x_{i+1}) = s_{i+1}(x_{i+1})
+\end{equation}
+\newline
+\begin{equation}
+    s_i'(x_{i+1}) = s_{i+1}'(x_{i+1})
+\end{equation}
+\newline
+\begin{equation}
+    s_i''(x_{i+1}) = s_{i+1}''(x_{i+1})
+\end{equation}
+\newline
+
+Wir definieren den Koeffizienten $S_i$ für $s_i''(x_i)$
+\newline
+
+\begin{equation}
+    S_i \coloneqq s_i''(x_i)
+\end{equation}
+\newline
+
+Aus den Formeln 1.7 geht hervor dass für $S_i$ gilt:
+\newline
+
+\begin{equation*}
+    S_{i+1} = 2\cdot b_{i+1} = 6\cdot a_i\cdot h_i+2\cdot b_i
+\end{equation*}
+\newline
+\begin{equation}
+    S_{i+1} = 6\cdot a_i\cdot h_i+S_i
+\end{equation}
+\newline
+
+Entsprechend gilt für $a_i$ und $b_i$
+\newline
+
+\begin{equation*}
+    a_i = \frac{S_{i+1}-S_i}{6\cdot h_i}
+\end{equation*}
+\newline
+\begin{equation}
+    b_i = \frac{S_i}{2}
+\end{equation}
+\newline
+
+Durch substituieren von $a_i$ und $b_i$ in Gleichung 1.5 folgt für $c_i$
+\newline
+
+\begin{equation}
+    c_i = \frac{y_{i+1}-y_i}{h_i}-\frac{h_i\cdot (S_{i+1}+2\cdot S_i)}{6}
+\end{equation}
+\newline
+
+Entsprechend ergibt sich die Gleichung für $S[n]$ durch substituieren der Koeffizienten $a_i$,$b_i$ und $c_i$ in Gleichung 1.5
+\begin{equation}
+    h_i\cdot S_i+2\cdot (h_i+h_{i+1})\cdot S_{i+1} + h_{i+1}\cdot S_{i+2} = 6\cdot (\frac{y_{i+2}-y_{i+1}}{h_{i+1}}-\frac{y_{i+1}-y_{i}}{h_{i}})
+\end{equation}
+\newline
+
+Wir erhalten also ein Randwertproblem. Durch die natürliche Randwertbedingung gilt:
+\newline
+
+\begin{equation}
+    S_1 = S_n = 0
+\end{equation}
+\newline
+
+Entsprechend den vorgängigen Überlegungen folgt das Gleichungssystem für die unbekannten Einträge von $S[n]$
+\newline
+
+\begin{equation}
+    \begin{bmatrix}
+        2\cdot (h_1+h_2) & h_2 \\
+        h_2 & 2\cdot (h_2+h_3) & h_3 \\
+        & h_3 & \ddots & \ddots \\ 
+        && \ddots & \ddots &\ h_{n-2}\\
+        &&& h_{n-2} & 2\cdot (h_{n-2+}h_{n-1})
+    \end{bmatrix}
+    \cdot
+    \begin{bmatrix}
+        S_2\\
+        S_3 \\
+        \vdots\\ 
+        S_{n-1}
+    \end{bmatrix}
+    =
+    6\cdot
+    \begin{bmatrix}
+        \frac{y_3-y_2}{h_2}-\frac{y_2-y_1}{h_1}\\
+        \frac{y_4-y_3}{h_3}-\frac{y_3-y_2}{h_2} \\
+        \vdots\\ 
+        \frac{y_{n}-y_{n-1}}{h_{n-1}}-\frac{y_{n-1}-y_{n-2}}{h_{n-2}}
+    \end{bmatrix}
+\end{equation}
+\newline
+\newpage
+
+Da es sich um eine Tridiagonalmatrix handelt kann dieses Gleichungssystem mit dem Thomas Algorithmus gelöst werden. Zuerst müssen die Koeffizienten $a_T[n_T]$, $b_T[n_T]$,$c_T[n_T]$ und $d_T[n_T]$ bestimmt werden. Das Subskript T dient der unterscheidung der Variablen.
+\newline
+
+\begin{equation}
+    \begin{bmatrix}
+        b_{T,1} & c_{T,1}\\
+        a_{T,2} & b_{T,2} & c_{T,2} \\
+        & a_{T,3} & \ddots & \ddots \\ 
+        && \ddots & \ddots &\ c_{T,n_T-1}\\
+        &&& a_{T,n_T} & b_{T,n_T}
+    \end{bmatrix}
+    \cdot
+    \begin{bmatrix}
+        x_{T,1}\\
+        x_{T,2}\\
+        \vdots\\ 
+        x_{T,n_T}
+    \end{bmatrix}
+    =
+    \begin{bmatrix}
+        d_{T,1}\\
+        d_{T_2} \\
+        \vdots\\ 
+        d_{T,n_T}
+    \end{bmatrix}
+\end{equation}
+\newline
+
+Das $n_T$ des Thomas Algorithmus entspricht der Anzahl Stützstellen - 2 ($n_T = n-2$). Entsprechend glit für die Koeffizienten durch Koeffizientenvergleich mit Gleichung 3.7 und substituieren von  $n_T$
+\newline
+
+\begin{equation*}
+    a_{T,i} =
+    \begin{cases}
+        0 & ;i=1\\
+        h_i & ;i\in [2,n-2]
+    \end{cases}
+\end{equation*}
+\newline
+\begin{equation*}
+    b_{T,i} = 2\cdot (h_i+h_{i+1}) \hspace{1cm} ;i\in [1,n-2]
+\end{equation*}
+\newline
+\begin{equation*}
+    c_{T,i} = 
+    \begin{cases}
+        h_{i+1} & ;i\in [1,n-3]\\
+        0 & ;i=n-2
+    \end{cases}
+\end{equation*}
+\newline
+\begin{equation}
+    d_{T,i} = 6\cdot \left(\frac{y_{i+2}-y_{i+1}}{h_{i+1}}-\frac{y_{i+1}-y_i}{h_i}\right) \hspace{1cm} ;i\in [1,n-2]
+\end{equation}
+\newline
+
+Mit dem Thomas Algorithmus werden in einem ersten Schritt die Koeffizienten $c_T'[n_T]$ und $d_T'[n_T]$ berechnet. (Vorwärtseinsetzen)
+\newline
+
+\begin{equation*}
+    c_{T,i}' =
+    \begin{cases}
+        \frac{c_{T,i}}{b_{T,i}} & ;i=1\\
+        \frac{c_{T,i}}{b_{T,i}-c_{T,i-1}'\cdot a_i} & ;i\in [2,n-3]
+    \end{cases}
+\end{equation*}
+\newline
+\begin{equation}
+    d_{T,i}' = 
+    \begin{cases}
+        \frac{d_{T,i}}{b_{T,i}} & ;i=1\\
+        \frac{d_{T,i}-d_{T,i-1}'\cdot a_{T,i}}{b_{T,i}-c_{T,i-1}'\cdot a_{T,i}} & ;i\in [2,n-2]
+    \end{cases}
+\end{equation}
+\newpage
+
+Die unbekannten Koeffizienten von $S[n]$ werden anschliessend wie folgt berechnet. (Rückwärtseinsetzen)
+\newline
+
+\begin{equation}
+    S_{i} =
+    \begin{cases}
+        d_{T,i-1}' & ;i=n-1\\
+        d_{T,i-1}'-c_{T,i}'\cdot S_{i+1} & ;i\in [n-2,2]
+    \end{cases}
+\end{equation}
+\newline
+
+Damit lassen sich die Spline Koeffizienten folgendermassen berechnen.
+\newline
+
+\begin{equation*}
+    a_i = \frac{S_{i+1}-S_i}{6\cdot h_i} \hspace{1cm} ;i\in [1,n-1]
+\end{equation*}
+\begin{equation*}
+    b_i = \frac{S_i}{2} \hspace{1cm} ;i\in [1,n-1]
+\end{equation*}
+\begin{equation}
+    c_i = \frac{y_{i+1}-y_i}{h_i}-\frac{h_i\cdot (S_{i+1}+2\cdot S_i)}{6} \hspace{1cm} ;i\in [1,n-1]
+\end{equation}
+\newline
+
+Ein Wert $y(x)$ lässt sich anschliessend berechnen mit
+\newline
+
+\begin{equation}
+    y = 
+    \begin{cases}
+        y_1-c_1\cdot (x_1-x) & ;x < x_1\\
+        y_i+a_i\cdot (x-x_i)^3+b_i\cdot (x-x_i)^2+c_i\cdot (x-x_i) & ;x\in [x_i,x_{i+1}]\\
+        y_n+(3\cdot a_{n-1}\cdot (x_n-x_{n-1})^2+2\cdot b_{n-1}\cdot (x_n-x_{n-1})+c_{n-1})\cdot (x-x_n) & ;x > x_n
+    \end{cases}
+\end{equation}
+\newpage
+
+\end{document}
+
+
